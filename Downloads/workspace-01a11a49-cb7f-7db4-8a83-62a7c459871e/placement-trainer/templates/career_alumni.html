@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Alumni directory · Placement Trainer{% endblock %}
+{% block content %}
+<section class="card narrow-wide">
+  <h1>Alumni directory</h1>
+  <p class="muted">If you were placed through campus recruitment, you can share your details so current students can ask for guidance. Joining is optional. You can edit or remove your profile at any time.</p>
+
+  <form method="post">
+    <label>Company (choose from the list)
+      <select name="company_id">
+        <option value="">Not in the list (type the name below)</option>
+        {% for c in companies %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Company name (only if not in the list)
+      <input name="company_name" value="{{ existing.company_name if existing and not existing.company_id else '' }}">
+    </label>
+    <label>Role you were placed in
+      <input name="role_title" required placeholder="for example Associate Software Engineer"
+             value="{{ existing.role_title if existing else '' }}">
+    </label>
+    <label>Batch year
+      <input name="batch_year" placeholder="for example 2025" value="{{ existing.batch_year if existing else '' }}">
+    </label>
+    <label>Phone (optional)
+      <input name="phone" value="{{ existing.phone if existing else '' }}">
+    </label>
+    <label>Email for students to contact you (optional)
+      <input type="email" name="public_email" value="{{ existing.public_email if existing else '' }}">
+    </label>
+    <label class="consent">
+      <input type="checkbox" name="consent" required>
+      <span>I was placed by this company. I agree that my name, role, batch year and the phone number and email I entered can be shown to logged-in students of this college. I understand I can remove my profile at any time.</span>
+    </label>
+    <button type="submit">{{ 'Update profile' if existing else 'Join the directory' }}</button>
+  </form>
+
+  {% if existing %}
+    <p class="muted status-line">
+      Status: {% if existing.verified %}<span class="badge strong">verified and listed</span>{% else %}<span class="badge developing">waiting for verification (not listed yet)</span>{% endif %}
+    </p>
+    <form method="post" class="inline-form">
+      <input type="hidden" name="action" value="remove">
+      <button type="submit" class="ghost">Remove my profile</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

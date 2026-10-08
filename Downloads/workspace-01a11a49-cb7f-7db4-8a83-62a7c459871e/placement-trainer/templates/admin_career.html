@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Career admin · Placement Trainer{% endblock %}
+{% block content %}
+<div class="quiz-head">
+  <h1>Career admin</h1>
+  <a class="button-link secondary" href="{{ url_for('admin') }}">Back to admin</a>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Companies</h2>
+    {% if companies %}
+    <table>
+      <thead><tr><th>Company</th><th>Sector</th><th>Questions</th><th>Verified alumni</th></tr></thead>
+      <tbody>
+      {% for c in companies %}
+        <tr><td>{{ c.name }}</td><td>{{ c.sector or '-' }}</td><td>{{ c.qcount }}</td><td>{{ c.alumni_count }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="muted">No companies yet.</p>{% endif %}
+
+    <h3 class="round-title">Add a company</h3>
+    <form method="post" action="{{ url_for('admin_company_new') }}">
+      <label>Name <input name="name" required></label>
+      <label>Sector <input name="sector" placeholder="for example IT services"></label>
+      <label>How hiring works (optional)
+        <textarea name="hiring_process" rows="3"></textarea>
+      </label>
+      <button type="submit">Add company</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Add a previous-year question</h2>
+    <p class="muted">Record where each question came from. Add only questions you have checked. Source links must start with http:// or https://.</p>
+    <form method="post" action="{{ url_for('admin_company_question_new') }}">
+      <label>Company
+        <select name="company_id" required>
+          {% for c in companies %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Round
+        <select name="round_type" required>
+          {% for r in round_types %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Question <textarea name="question" rows="2" required></textarea></label>
+      <label>Year asked or reported <input name="year" placeholder="for example 2025" maxlength="4"></label>
+      <label>Source link (optional) <input name="source_url" placeholder="https://..."></label>
+      <label>Source note (optional) <input name="source_note" placeholder="for example Candidate-reported, source dated 2025"></label>
+      <button type="submit">Add question</button>
+    </form>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Alumni submissions</h2>
+  {% if pending %}
+  <div class="table-scroll">
+  <table>
+    <thead><tr><th>Name</th><th>Login email</th><th>Company</th><th>Role</th><th>Batch</th><th>Shown to students</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for a in pending %}
+      <tr>
+        <td>{{ a.name }}</td>
+        <td>{{ a.email }}</td>
+        <td>{{ a.company_name }}</td>
+        <td>{{ a.role_title }}</td>
+        <td>{{ a.batch_year or '-' }}</td>
+        <td>{{ a.phone or '-' }}<br>{{ a.public_email or '-' }}</td>
+        <td>{% if a.verified %}<span class="badge strong">verified</span>{% else %}<span class="badge developing">pending</span>{% endif %}</td>
+        <td class="actions">
+          {% if not a.verified %}
+          <form method="post" action="{{ url_for('admin_alumni_verify', alumni_id=a.id) }}" class="inline-form">
+            <button type="submit">Verify</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('admin_alumni_remove', alumni_id=a.id) }}" class="inline-form">
+            <button type="submit" class="ghost">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Verify a profile only after checking the person was placed by that company. The phone and email in the "Shown to students" column are what students will see.</p>
+  {% else %}
+    <p class="muted">No alumni have joined the directory yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Interview · Placement Trainer{% endblock %}
+{% block content %}
+<div class="quiz-head">
+  <div>
+    <h1>{{ s.interview_type }} interview</h1>
+    <p class="muted">Question {{ number }} of {{ total }}</p>
+  </div>
+  <div class="timer" id="timer">--:--</div>
+</div>
+<div class="progress"><span style="width: {{ (number - 1) * 100 // total }}%"></span></div>
+
+<section class="card interviewer">
+  <div class="bubble-label">Interviewer</div>
+  <div class="bubble">{{ item.question }}</div>
+  <div class="speech-row">
+    <button type="button" class="ghost" id="speakBtn">Read question aloud</button>
+    <button type="button" class="ghost" id="micBtn">Dictate answer</button>
+    <span class="muted" id="micNote"></span>
+  </div>
+</section>
+
+<form method="post" action="{{ url_for('interview_answer', session_id=s.id) }}" id="answerForm" class="card">
+  <input type="hidden" name="item_id" value="{{ item.id }}">
+  <label>Your answer
+    <textarea name="answer" id="answer" class="answer" rows="8"
+      placeholder="Type or dictate your answer. Use an example from your own experience."></textarea>
+  </label>
+  <p class="muted">Tip: {{ tip }}</p>
+  <button type="submit" class="big">Submit answer</button>
+</form>
+
+<script>
+  (function () {
+    var left = {{ limit }};
+    var timer = document.getElementById('timer');
+    var form = document.getElementById('answerForm');
+    var question = {{ item.question | tojson }};
+
+    function fmt(s) {
+      var m = Math.floor(s / 60), r = s % 60;
+      return m + ':' + (r < 10 ? '0' : '') + r;
+    }
+    timer.textContent = fmt(left);
+    var t = setInterval(function () {
+      left -= 1;
+      timer.textContent = fmt(Math.max(left, 0));
+      if (left <= 0) { clearInterval(t); form.submit(); }
+    }, 1000);
+
+    // Interviewer voice (browser text-to-speech)
+    var speakBtn = document.getElementById('speakBtn');
+    if ('speechSynthesis' in window) {
+      speakBtn.onclick = function () {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance(question);
+        u.rate = 0.95;
+        window.speechSynthesis.speak(u);
+      };
+    } else {
+      speakBtn.disabled = true;
+    }
+
+    // Voice answers (browser speech recognition, Chrome/Edge)
+    var micBtn = document.getElementById('micBtn');
+    var note = document.getElementById('micNote');
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) {
+      var rec = new SR();
+      var listening = false;
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.lang = 'en-IN';
+      rec.onresult = function (e) {
+        var ta = document.getElementById('answer');
+        for (var i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            var piece = e.results[i][0].transcript.trim();
+            ta.value += (ta.value && !/\s$/.test(ta.value) ? ' ' : '') + piece;
+          }
+        }
+      };
+      rec.onend = function () {
+        listening = false;
+        micBtn.textContent = 'Dictate answer';
+      };
+      micBtn.onclick = function () {
+        if (listening) { rec.stop(); return; }
+        try {
+          rec.start();
+          listening = true;
+          micBtn.textContent = 'Stop dictation';
+          note.textContent = 'Listening...';
+        } catch (err) {
+          note.textContent = 'Could not start the microphone. Check permissions.';
+        }
+      };
+    } else {
+      micBtn.disabled = true;
+      note.textContent = 'Voice dictation needs Chrome or Edge. You can type your answer instead.';
+    }
+  })();
+</script>
+{% endblock %}

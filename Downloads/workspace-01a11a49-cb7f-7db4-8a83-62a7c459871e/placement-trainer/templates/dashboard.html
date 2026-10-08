@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Placement Trainer{% endblock %}
+{% block content %}
+<h1>Hi, {{ me.name }}</h1>
+
+<div class="stats">
+  <div class="card stat"><span>{{ stats.n }}</span>Tests taken</div>
+  <div class="card stat"><span>{{ '%.0f' % stats.avg }}%</span>Average score</div>
+  <div class="card stat"><span>{{ analysis.answered }}</span>Questions analysed</div>
+  <div class="card stat"><span>{{ streak }}</span>Daily streak (days)</div>
+</div>
+
+<div class="grid-2">
+  <section class="card feature daily">
+    <div class="feature-head">
+      <h2>Daily test</h2>
+      {% if daily_done %}<span class="pill ok">Done today</span>{% else %}<span class="pill">Not started</span>{% endif %}
+    </div>
+    <p class="muted">{{ daily_count }} fresh questions, chosen for your weakest areas. One a day keeps the streak alive.</p>
+    <p class="streak-line">Current streak: {{ streak }} day{{ 's' if streak != 1 }}</p>
+    {% if daily_done %}
+      <a class="button-link secondary" href="{{ url_for('daily_page') }}">See today's progress</a>
+    {% else %}
+      <form method="post" action="{{ url_for('daily_start') }}">
+        <button type="submit">Start today's test</button>
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="card feature interview">
+    <div class="feature-head">
+      <h2>Interview practice</h2>
+      {% if interview_avg is not none %}<span class="pill">Avg {{ '%.0f' % interview_avg }}/100</span>{% endif %}
+    </div>
+    <p class="muted">Mock interviews with a read-aloud question, optional voice answers and instant feedback on content, structure and filler words.</p>
+    <p class="streak-line">{{ interviews|length }} interview session{{ 's' if interviews|length != 1 }} so far</p>
+    <a class="button-link" href="{{ url_for('interview_page') }}">Start an interview</a>
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Start a practice test</h2>
+    <form method="post" action="{{ url_for('quiz_start') }}">
+      <label>Category
+        <select name="category">
+          <option value="Mixed">Mixed (all categories)</option>
+          {% for c in categories %}
+            <option value="{{ c }}">{{ c }} ({{ bank.get(c, 0) }} questions)</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Number of questions
+        <select name="count">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </label>
+      <button type="submit">Start test</button>
+      <p class="muted">You get 60 seconds per question.</p>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Your performance snapshot</h2>
+    <p>{{ analysis.summary }}</p>
+    <p><strong>Strengths:</strong>
+      {% for s in analysis.strengths %}<span class="badge strong">{{ s.category }}</span>{% else %}<span class="muted">None yet</span>{% endfor %}
+    </p>
+    <p><strong>Needs work:</strong>
+      {% for w in analysis.weaknesses %}<span class="badge weak">{{ w.category }}</span>{% else %}<span class="muted">None yet</span>{% endfor %}
+    </p>
+    {% if analysis.cluster %}<p><strong>Learning profile:</strong> {{ analysis.cluster.name }}</p>{% endif %}
+    <a class="button-link" href="{{ url_for('analysis') }}">View full analysis</a>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Recent tests</h2>
+  {% if attempts %}
+  <table>
+    <thead><tr><th>Date</th><th>Category</th><th>Score</th><th>Time</th><th></th></tr></thead>
+    <tbody>
+    {% for a in attempts %}
+      <tr>
+        <td>{{ a.created_at }}</td>
+        <td>{{ a.category }}</td>
+        <td>{{ a.score }}/{{ a.total }} ({{ '%.0f' % (100.0 * a.score / a.total) }}%)</td>
+        <td>{{ '%d:%02d' % (a.time_taken // 60, a.time_taken % 60) }}</td>
+        <td><a href="{{ url_for('result', attempt_id=a.id) }}">Review</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">No tests yet. Start your first one above.</p>
+  {% endif %}
+</section>
+{% endblock %}

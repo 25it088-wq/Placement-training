@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Add question · Placement Trainer{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Add a question</h1>
+  <form method="post">
+    <label>Category
+      <select name="category" required>
+        {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Difficulty
+      <select name="difficulty">
+        <option value="1">1 - Easy</option>
+        <option value="2" selected>2 - Medium</option>
+        <option value="3">3 - Hard</option>
+      </select>
+    </label>
+    <label>Question <textarea name="text" rows="3" required></textarea></label>
+    <label>Option A <input name="option_a" required></label>
+    <label>Option B <input name="option_b" required></label>
+    <label>Option C <input name="option_c" required></label>
+    <label>Option D <input name="option_d" required></label>
+    <label>Correct option
+      <select name="answer" required>
+        <option value="0">A</option><option value="1">B</option>
+        <option value="2">C</option><option value="3">D</option>
+      </select>
+    </label>
+    <label>Explanation (shown after the test) <textarea name="explanation" rows="2"></textarea></label>
+    <button type="submit">Save question</button>
+  </form>
+</section>
+{% endblock %}

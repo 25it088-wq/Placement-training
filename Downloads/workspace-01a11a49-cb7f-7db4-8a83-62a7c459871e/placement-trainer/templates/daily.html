@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Daily test · Placement Trainer{% endblock %}
+{% block content %}
+<div class="quiz-head">
+  <div>
+    <h1>Daily test</h1>
+    <p class="muted">{{ day.strftime('%A, %d %B %Y') }} · {{ count }} questions</p>
+  </div>
+  {% if done %}<span class="pill ok">Completed today</span>{% else %}<span class="pill">Not started</span>{% endif %}
+</div>
+
+<div class="stats">
+  <div class="card stat"><span>{{ streak }}</span>Day streak</div>
+  <div class="card stat"><span>{{ week | selectattr('done') | list | length }}</span>Tests in the last 14 days</div>
+  <div class="card stat"><span>{{ count }}</span>Questions today</div>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Today's focus</h2>
+    <div class="focus-list">
+      {% for c in focus %}
+        <div class="focus-item">
+          <span>{{ c.category }}</span>
+          <span class="badge {{ c.status }}">{{ c.status }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="muted">Categories are ordered from weakest to strongest. Every category gets at least one question, and the weakest gets an extra one.</p>
+
+    {% if done %}
+      {% if done.attempt_id %}
+        <a class="button-link" href="{{ url_for('result', attempt_id=done.attempt_id) }}">Review today's result</a>
+      {% endif %}
+      <p class="muted">Come back tomorrow for a new set.</p>
+    {% else %}
+      <form method="post" action="{{ url_for('daily_start') }}">
+        <button type="submit" class="big">Start today's test</button>
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Last 14 days</h2>
+    <div class="dots">
+      {% for d in week %}
+        <div class="dot-day {{ 'done' if d.done }} {{ 'today' if d.today }}">
+          <small>{{ d.label }}</small>
+          <strong>{{ d.num }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="muted">Green days are completed. Keep the chain going to build your streak.</p>
+  </section>
+</div>
+{% endblock %}
