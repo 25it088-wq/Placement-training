@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Interview practice · Placement Trainer{% endblock %}
+{% block content %}
+<h1>Interview practice</h1>
+<p class="muted">Answer questions one at a time, as in a real interview. Each answer gets instant feedback on content, structure and filler words.</p>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Start a mock interview</h2>
+    <form method="post" action="{{ url_for('interview_start') }}">
+      <label>Interview type
+        <select name="type">
+          <option value="Mixed">Mixed (HR, behavioural and technical)</option>
+          {% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Number of questions
+        <select name="count">
+          {% for n in counts %}<option value="{{ n }}" {{ 'selected' if n == 3 }}>{{ n }}</option>{% endfor %}
+        </select>
+      </label>
+      <button type="submit">Start interview</button>
+      <p class="muted">2 minutes per answer. Voice dictation works in Chrome and Edge. You can always type instead.</p>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>What we score</h2>
+    <ul class="checklist">
+      <li><strong>Content (50%)</strong>: covers the key points the question expects.</li>
+      <li><strong>Length (20%)</strong>: about 40 to 180 words.</li>
+      <li><strong>Structure (30%)</strong>: STAR for behavioural questions, clear sentences for the rest.</li>
+      <li><strong>Filler words</strong>: "um", "basically" and similar words lower the score.</li>
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Your interviews</h2>
+  {% if sessions %}
+  <table>
+    <thead><tr><th>Date</th><th>Type</th><th>Answered</th><th>Average</th><th></th></tr></thead>
+    <tbody>
+    {% for s in sessions %}
+      <tr>
+        <td>{{ s.created_at }}</td>
+        <td>{{ s.interview_type }}</td>
+        <td>{{ s.answered }}/{{ s.total }}</td>
+        <td>{% if s.avg_score is not none %}{{ s.avg_score }}{% else %}-{% endif %}</td>
+        <td>
+          {% if s.answered < s.total %}
+            <a href="{{ url_for('interview_session', session_id=s.id) }}">Continue</a>
+          {% else %}
+            <a href="{{ url_for('interview_report', session_id=s.id) }}">Report</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">No interviews yet. Start one above.</p>
+  {% endif %}
+</section>
+{% endblock %}

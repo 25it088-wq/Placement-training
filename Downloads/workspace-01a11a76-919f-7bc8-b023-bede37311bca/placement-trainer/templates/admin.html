@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Admin · Placement Trainer{% endblock %}
+{% block content %}
+<div class="quiz-head">
+  <h1>Placement cell dashboard</h1>
+  <a class="button-link" href="{{ url_for('admin_new_question') }}">+ Add question</a>
+  <a class="button-link secondary" href="{{ url_for('admin_career') }}">Career admin</a>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Cohort accuracy by category</h2>
+    {% if cohort %}
+    <table>
+      <thead><tr><th>Category</th><th>Answers</th><th>Accuracy</th></tr></thead>
+      <tbody>
+      {% for c in cohort %}
+        <tr><td>{{ c.category }}</td><td>{{ c.answered }}</td><td>{{ c.accuracy }}%</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="muted">No student answers yet.</p>{% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Question bank</h2>
+    <table>
+      <thead><tr><th>Category</th><th>Questions</th></tr></thead>
+      <tbody>
+      {% for b in bank %}<tr><td>{{ b.category }}</td><td>{{ b.n }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Students</h2>
+  {% if rows %}
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Tests</th><th>Accuracy</th><th>Strengths</th><th>Needs work</th><th>Profile</th></tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>{{ r.student.name }}</td>
+        <td>{{ r.student.email }}</td>
+        <td>{{ r.attempts }}</td>
+        <td>{{ r.analysis.raw_accuracy if r.analysis.raw_accuracy is not none else '-' }}{% if r.analysis.raw_accuracy is not none %}%{% endif %}</td>
+        <td>{{ r.analysis.strengths | map(attribute='category') | join(', ') or '-' }}</td>
+        <td>{{ r.analysis.weaknesses | map(attribute='category') | join(', ') or '-' }}</td>
+        <td>{{ r.analysis.cluster.name if r.analysis.cluster else '-' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">No students have registered yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Placement Trainer{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='features.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}">Placement Trainer</a>
+  <nav>
+    {% if me %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('daily_page') }}">Daily test</a>
+      <a href="{{ url_for('interview_page') }}">Interview</a>
+      <a href="{{ url_for('career_page') }}">Career</a>
+      <a href="{{ url_for('analysis') }}">My Analysis</a>
+      {% if me.role == 'admin' %}<a href="{{ url_for('admin') }}">Admin</a>{% endif %}
+      <span class="who">{{ me.name }}</span>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('register') }}">Register</a>
+    {% endif %}
+  </nav>
+</header>
+<main class="container">
+  {% with messages = get_flashed_messages() %}
+    {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Interview report · Placement Trainer{% endblock %}
+{% block content %}
+<section class="card report-head">
+  <div class="ring" style="--p: {{ avg }};"><span>{{ '%.0f' % avg }}</span></div>
+  <div>
+    <h1>Interview report</h1>
+    <p class="muted">{{ s.interview_type }} interview · {{ items|length }} questions · {{ s.created_at }}</p>
+    <span class="badge {% if avg >= 75 %}strong{% elif avg >= 50 %}developing{% else %}weak{% endif %}">{{ label }}</span>
+    <p style="margin-top: .8rem;">
+      <a class="button-link" href="{{ url_for('interview_page') }}">Practise again</a>
+      <a class="button-link secondary" href="{{ url_for('dashboard') }}">Dashboard</a>
+    </p>
+  </div>
+</section>
+
+{% for it in items %}
+  {% set r = it.row %}
+  {% set res = it.res %}
+  <section class="card q-review">
+    <p class="tags">
+      <span class="tag">{{ r.interview_type }}</span>
+      <span class="tag">Question {{ loop.index }}</span>
+    </p>
+    <h2 class="q-title">{{ r.question }}</h2>
+    <div class="answer-box">{{ r.answer if r.answer else 'No answer recorded.' }}</div>
+
+    <div class="score-line">
+      <div class="bar">
+        <div class="fill {% if r.score >= 75 %}strong{% elif r.score >= 50 %}developing{% else %}weak{% endif %}"
+             style="width: {{ r.score }}%"></div>
+      </div>
+      <strong>{{ '%.0f' % r.score }}/100</strong>
+    </div>
+    <p class="muted">{{ res.words }} words · {{ res.filler_count }} filler word{{ 's' if res.filler_count != 1 }}</p>
+
+    {% if res.star %}
+      <div class="star">
+        {% for k, ok in res.star.items() %}
+          <span class="star-chip {{ 'on' if ok else 'off' }}">{{ k }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <p><strong>Covered:</strong>
+      {% for k in res.hits %}<span class="chip ok">{{ k }}</span>{% else %}<span class="muted">none</span>{% endfor %}
+    </p>
+    <p><strong>Missed:</strong>
+      {% for k in res.missed %}<span class="chip miss">{{ k }}</span>{% else %}<span class="muted">none</span>{% endfor %}
+    </p>
+
+    <ul class="feedback">
+      {% for tip in res.feedback %}<li>{{ tip }}</li>{% endfor %}
+    </ul>
+  </section>
+{% endfor %}
+{% endblock %}

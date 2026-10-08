@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Test · Placement Trainer{% endblock %}
+{% block content %}
+<div class="quiz-head">
+  <h1>{{ category }} test</h1>
+  <div class="timer" id="timer">--:--</div>
+</div>
+
+<form method="post" action="{{ url_for('quiz_submit') }}" id="quizForm">
+  {% for q in questions %}
+  {% set opts = [q.option_a, q.option_b, q.option_c, q.option_d] %}
+  <fieldset class="card question">
+    <legend>Q{{ loop.index }}</legend>
+    <p class="tags">
+      <span class="tag">{{ q.category }}</span>
+      <span class="tag">Level {{ q.difficulty }}</span>
+    </p>
+    <p class="qtext">{{ q.text }}</p>
+    {% for opt in opts %}
+      <label class="opt">
+        <input type="radio" name="q{{ q.id }}" value="{{ loop.index0 }}"> {{ opt }}
+      </label>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+  <button type="submit" class="big">Submit test</button>
+</form>
+
+<script>
+  (function () {
+    var left = {{ limit }};
+    var el = document.getElementById('timer');
+    var form = document.getElementById('quizForm');
+    function fmt(s) {
+      var m = Math.floor(s / 60), r = s % 60;
+      return m + ':' + (r < 10 ? '0' : '') + r;
+    }
+    el.textContent = fmt(left);
+    var t = setInterval(function () {
+      left -= 1;
+      el.textContent = fmt(Math.max(left, 0));
+      if (left <= 0) {
+        clearInterval(t);
+        form.submit();
+      }
+    }, 1000);
+  })();
+</script>
+{% endblock %}

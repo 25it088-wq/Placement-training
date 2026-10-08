@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Career · Placement Trainer{% endblock %}
+
+{% macro target_form(t) %}
+<form method="post" action="{{ url_for('career_target_save') }}" class="target-form">
+  <label>Job role
+    <select name="role_id" required>
+      <option value="">Choose a role</option>
+      {% for r in roles %}
+        <option value="{{ r.id }}" {{ 'selected' if t and t.role_id == r.id }}>{{ r.title }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Company
+    <select name="company_id">
+      <option value="">Other (type the name below)</option>
+      {% for c in companies %}
+        <option value="{{ c.id }}" {{ 'selected' if t and t.company_id == c.id }}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Other company name
+    <input name="company_name" placeholder="Only if your company is not in the list"
+           value="{{ t.company_name if t and not t.company_id else '' }}">
+  </label>
+  <label>Position you want
+    <input name="position_title" required placeholder="for example Associate Software Engineer"
+           value="{{ t.position_title if t else '' }}">
+  </label>
+  <button type="submit">Save target</button>
+</form>
+{% endmacro %}
+
+{% block content %}
+<div class="quiz-head">
+  <div>
+    <h1>Career path</h1>
+    <p class="muted">Train for a specific job, position and company. Your readiness combines your aptitude results with your interview scores.</p>
+  </div>
+  {% if target %}<a class="button-link secondary" href="{{ url_for('alumni_join') }}">Alumni directory</a>{% endif %}
+</div>
+
+{% if not target %}
+  <section class="card">
+    <h2>Set your target</h2>
+    <p class="muted">Pick the role, the company and the position you are aiming for. We will build a training plan and show previous interview questions for that company.</p>
+    {{ target_form(None) }}
+  </section>
+{% else %}
+  <section class="card target-summary">
+    <div>
+      <span class="pill">Your target</span>
+      <h2 class="target-title">{{ target.position_title }}</h2>
+      <p class="muted">{{ target.role_title }} at <strong>{{ company_name }}</strong></p>
+    </div>
+    <details class="edit-target">
+      <summary>Change target</summary>
+      {{ target_form(target) }}
+    </details>
+  </section>
+
+  <div class="grid-2">
+    <section class="card readiness">
+      <h2>Readiness</h2>
+      <div class="ring" style="--p: {{ readiness.readiness }};"><span>{{ '%.0f' % readiness.readiness }}</span></div>
+      <p class="ready-label"><strong>{{ readiness.label }}</strong></p>
+      <p class="muted">Aptitude ({{ readiness.categories | join(', ') }}): {{ readiness.aptitude }}/100</p>
+      <p class="muted">
+        {% if readiness.interview is not none %}
+          Interview practice average: {{ readiness.interview }}/100 (counts for 30%).
+        {% else %}
+          No interview practice yet. Complete one to add it to your score.
+        {% endif %}
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Training plan: {{ target.role_title }}</h2>
+      <ol class="plan">
+        {% for t in topics %}
+          <li><strong>{{ t.topic }}</strong><span>{{ t.guidance }}</span></li>
+        {% endfor %}
+      </ol>
+      <p>
+        <a class="button-link" href="{{ url_for('daily_page') }}">Daily test</a>
+        <a class="button-link secondary" href="{{ url_for('interview_page') }}">Mock interview</a>
+      </p>
+    </section>
+  </div>
+
+  {% if company %}
+    <section class="card">
+      <h2>About {{ company.name }}</h2>
+      <p class="muted">Sector: {{ company.sector or 'not specified' }}</p>
+      <p>{{ company.hiring_process }}</p>
+    </section>
+
+    <section class="card">
+      <h2>Previous interview questions</h2>
+      {% if questions %}
+        {% for group in questions %}
+          <h3 class="round-title">{{ group.round }} round</h3>
+          <ul class="qlist">
+            {% for q in group['items'] %}
+              <li>
+                <span class="q-text">{{ q.question }}</span>
+                <span class="pill">{{ q.year or 'year not given' }}</span>
+                {% if q.source_url %}<a href="{{ q.source_url }}" target="_blank" rel="noopener">Source</a>{% endif %}
+                {% if q.source_note %}<small class="muted">{{ q.source_note }}</small>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endfor %}
+        <p class="muted">These are reported by candidates and may not match the current process. Use them to see the pattern, not as a fixed list.</p>
+      {% else %}
+        <p class="muted">No questions have been added for {{ company.name }} yet. The placement cell can add them from the admin page.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Alumni placed at {{ company.name }}</h2>
+      {% if alumni %}
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Batch</th><th>Phone</th><th>Email</th></tr></thead>
+          <tbody>
+          {% for a in alumni %}
+            <tr>
+              <td>{{ a.name }}</td>
+              <td>{{ a.role_title }}</td>
+              <td>{{ a.batch_year or '-' }}</td>
+              <td>{{ a.phone or '-' }}</td>
+              <td>{% if a.public_email %}<a href="mailto:{{ a.public_email }}">{{ a.public_email }}</a>{% else %}-{% endif %}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">No verified alumni have shared their details for {{ company.name }} yet.</p>
+      {% endif %}
+      <p class="muted">Only alumni who opted in and were verified by the placement cell appear here. Please contact them respectfully and only for guidance.</p>
+    </section>
+  {% else %}
+    <section class="card">
+      <p class="muted">{{ company_name }} is not in the company list, so company questions and the alumni directory are not available for it. The placement cell can add it.</p>
+    </section>
+  {% endif %}
+{% endif %}
+{% endblock %}

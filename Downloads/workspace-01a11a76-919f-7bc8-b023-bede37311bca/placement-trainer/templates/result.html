@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Result · Placement Trainer{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Score: {{ attempt.score }} / {{ attempt.total }}</h1>
+  <p class="big-pct">{{ '%.0f' % (100.0 * attempt.score / attempt.total) }}%</p>
+  <p class="muted">{{ attempt.category }} · time {{ '%d:%02d' % (attempt.time_taken // 60, attempt.time_taken % 60) }} · {{ attempt.created_at }}</p>
+  <p>
+    <a class="button-link" href="{{ url_for('analysis') }}">See what this says about my strengths</a>
+    <a class="button-link secondary" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+  </p>
+</section>
+
+<h2>Review</h2>
+{% for r in rows %}
+  {% set opts = [r.option_a, r.option_b, r.option_c, r.option_d] %}
+  <div class="card review {{ 'ok' if r.is_correct else 'bad' }}">
+    <p class="tags"><span class="tag">{{ r.category }}</span><span class="tag">Level {{ r.difficulty }}</span></p>
+    <p><strong>Q{{ loop.index }}.</strong> {{ r.text }}</p>
+    <p>Your answer:
+      {% if r.selected is none %}<em>skipped</em>{% else %}{{ opts[r.selected] }}{% endif %}
+    </p>
+    {% if not r.is_correct %}<p>Correct answer: <strong>{{ opts[r.answer] }}</strong></p>{% endif %}
+    {% if r.explanation %}<p class="explain">{{ r.explanation }}</p>{% endif %}
+  </div>
+{% endfor %}
+{% endblock %}
